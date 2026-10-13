@@ -1,0 +1,86 @@
+[project]
+name = "canon-engine"
+version = "0.1.0"
+description = "Canon reconciliation engine — connectors, pipeline, resolution agent, evaluation harness."
+requires-python = ">=3.12"
+
+# Floors track the majors this project is actually developed and checked
+# against, not the oldest version that happens to import. Several of these
+# libraries have crossed a major since the floors were first written —
+# langgraph 0.2 and 1.x are different APIs, and so are pandas 2 and 3. A floor
+# that spans that break lets `uv sync` resolve a tree nobody has ever run,
+# which is exactly the class of surprise the run-reproducibility rules exist to
+# prevent. Raise a floor when the pinned major moves; do not lower one.
+dependencies = [
+    # Job control surface
+    "fastapi>=0.141",
+    "uvicorn[standard]>=0.52",
+    # Every payload crossing the layer boundary is a Pydantic model
+    "pydantic>=2.13",
+    "python-dotenv>=1.2",
+    # Connectors
+    "simple-salesforce>=1.12",
+    "databricks-sql-connector>=4.4",
+    # Pipeline
+    "pandas>=3.0",
+    "sentence-transformers>=5.6",
+    "faiss-cpu>=1.15",
+    "rapidfuzz>=3.14",
+    # Resolution agent. Both model SDKs are declared, not extras: which one a
+    # run uses is a per-run choice recorded on the row, so an engine that can
+    # only serve half the choices the console offers is a broken deployment
+    # rather than a lighter one.
+    "langgraph>=1.2",
+    "anthropic>=0.120",
+    "google-genai>=1.33",
+    # Owned-table writes
+    "psycopg[binary]>=3.3",
+    # AES-256-GCM for stored source credentials. Already present transitively
+    # (simple-salesforce → pyjwt[crypto]), and declared directly because
+    # credentials.py imports it: relying on another package's dependency to
+    # keep providing your cipher is how a `uv sync` silently removes it.
+    "cryptography>=46",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16",
+    "mypy>=2.3",
+    "pytest>=9.1",
+    # eval/report.py writes grayscale figures into docs/results/
+    "matplotlib>=3.11",
+    "pandas-stubs>=3.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["agent", "connectors", "eval", "pipeline"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "ANN"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+
+# The ML and connector stack ships incomplete or absent type information.
+# Everything Canon writes is still checked under --strict.
+[[tool.mypy.overrides]]
+module = [
+    "databricks.*",
+    "faiss.*",
+    "langgraph.*",
+    "sentence_transformers.*",
+    "simple_salesforce.*",
+    # Optional: only installed when a deployment reconciles Snowflake.
+    "snowflake.*",
+]
+ignore_missing_imports = true

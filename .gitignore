@@ -1,0 +1,73 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Patterns are unanchored: they must match under web/ and engine/, not just the root.
+
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+coverage/
+
+# next.js
+.next/
+out/
+
+# production
+build/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files — secrets never committed; the templates always are
+.env
+.env.*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# engine (Python / uv)
+.venv/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# generated synthetic datasets — reproducible from a seed, so never committed
+engine/data/
+
+# HubSpot config file
+hubspot.config.yml
+
+# Local agent tooling — machine state, never source.
+#
+# These are written by the claude-flow/ruflo background daemon: worker logs,
+# scheduler state, and metrics snapshots. They are per-machine and per-run, they
+# are not reproducible, and nothing in the project reads them.
+#
+# They are ignored for a stronger reason than noise. The daemon runs headless
+# model sessions and writes their transcripts here verbatim — including, on at
+# least one occasion, a live ANTHROPIC_API_KEY. A directory that can capture a
+# credential must never be a directory git is willing to track.
+.claude-flow/
+
+# Scaffolding from the HubSpot MCP, unrelated to Canon.
+web/canon/
